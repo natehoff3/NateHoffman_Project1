@@ -1,0 +1,101 @@
+/* Style for the page */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f9;
+  }
+  
+  header {
+    background-color: #4CAF50;
+    color: white;
+    text-align: center;
+    padding: 20px 0;
+  }
+  
+  header h1 {
+    font-size: 2.5em;
+  }
+  
+  header p {
+    font-size: 1.2em;
+  }
+  
+  .info {
+    text-align: center;
+    margin-top: 20px;
+  }
+  
+  #visualization-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
+  }
+  
+  #chart {
+    width: 100%;
+    max-width: 1110px;
+    height: 570px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 5px;
+    overflow-x: auto;
+    margin-right: 30px;
+    margin-top: 10px;
+}
+
+#scatterplot {
+    width: 100%;
+    max-width: 900px;
+    height: 570px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 5px;
+    margin-top: 10px;
+}
+
+#view1 {
+    display: flex;
+    flex-direction: row;
+    padding-left: 20px;
+}
+
+#view2 {
+  display: none;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 20px;
+}
+
+.map-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: nowrap;
+  width: 100%;
+}
+
+.map {
+  width: 900px;
+  height: 600px;
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+#toggleView {
+    position: absolute;
+    top: 230px;
+    right: 1500px;
+    padding: 8px 12px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}

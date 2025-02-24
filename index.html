@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Exploring Smoking Rates and Foreign-Born Populations in the U.S.</title>
+    <meta charset="UTF-8">
+    <link rel="icon" href="data:;base64,iVBORwOKGO=" />
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>    
+    <header>
+        <h1>Exploring Smoking Rates and Foreign-Born Populations in the U.S.</h1>
+        <p>By: Nate Hoffman</p>
+    </header>
+    
+    <section class="info">
+        <p><strong>Data Sources:</strong></p>
+        <ul>
+            <li><a href="https://www.ers.usda.gov/data-products/atlas-of-rural-and-small-town-america" target="_blank">USDA Atlas of Rural and Small-Town America</a></li>
+            <li><a href="https://www.cdc.gov/dhdsp/maps/atlas/index.htm" target="_blank">CDC Atlas of Heart Disease and Stroke</a></li>
+        </ul>
+        <p><strong>Libraries Used:</strong> D3.js, JavaScript, HTML, CSS</p>
+    </section>
+    
+    <button id="toggleView">Switch to Choropleth Maps</button>
+    
+    <div id="view1">
+        <div id="chart"></div>
+        <div id="scatterplot"></div>
+    </div>
+
+    <div id="view2" style="display: none;">
+      <div class="map-container">
+          <div id="map1" class="map"></div>
+          <div id="map2" class="map"></div>
+      </div>
+  </div>
+
+    <script src="js/d3.v6.min.js"></script>
+    <script src="js/topojson.v3.js"></script>
+    <script src="js/main.js"></script>
+    
+    <div id="tooltip" style="position: absolute; visibility: hidden; background: white; padding: 8px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.2);"></div>
+
+</body>
+</html>
