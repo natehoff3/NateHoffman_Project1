@@ -47,7 +47,7 @@ header p {
   width: 100%; /* Make the chart width responsive */
   max-width: 1110px; /* Set the maximum width */
   height: 570px; /* Set a fixed height */
-  background-color: #fff; /* Set a white background color */
+  background-color: #f0f0f0; /* Set a white background color */
   border: 1px solid #ddd; /* Add a light border around the chart */
   padding: 10px; /* Add padding inside the chart */
   border-radius: 5px; /* Round the corners of the chart */
@@ -61,7 +61,7 @@ header p {
   width: 100%; /* Make the scatterplot width responsive */
   max-width: 900px; /* Set the maximum width */
   height: 570px; /* Set a fixed height */
-  background-color: #fff; /* Set a white background color */
+  background-color: #f0f0f0; /* Set a white background color */
   border: 1px solid #ddd; /* Add a light border around the scatterplot */
   padding: 10px; /* Add padding inside the scatterplot */
   border-radius: 5px; /* Round the corners of the scatterplot */
