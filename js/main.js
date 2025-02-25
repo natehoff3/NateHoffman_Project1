@@ -2,6 +2,10 @@
 const dataUrl1 = "data/national_health_data_2024.csv"; // Path to the first dataset (percent_smoking)
 const dataUrl2 = "data/Updated_People.csv"; // Path to the second dataset (ForeignBornPct)
 
+// Define these two variables gloablly to use with the Foreign Born dropdown
+let filteredData = [];
+let data2Map = {};
+
 // Load and process the first CSV (percent_smoking data)
 d3.csv(dataUrl1).then(data1 => {
     console.log("Raw Data 1:", data1); // Log the raw data for debugging purposes
@@ -23,7 +27,7 @@ d3.csv(dataUrl1).then(data1 => {
         console.log("Raw Data 2:", data2); // Log the raw second dataset for debugging
 
         // Convert data2 into a map for quick lookup by FIPS code
-        const data2Map = data2.reduce((map, d) => {
+        data2Map = data2.reduce((map, d) => {
             const fips = d["FIPS"]; // Get the FIPS code from the second dataset
             const foreignBornPctValue = d["ForeignBornPct"]; // Get the foreign-born percentage
 
@@ -33,7 +37,14 @@ d3.csv(dataUrl1).then(data1 => {
                 map[fips] = {
                     value: trimmedValue && !isNaN(trimmedValue) ? +trimmedValue : 0, // Convert to number, set to 0 if invalid
                     state: getStateFromFIPS(fips), // Extract the state from the FIPS code
-                    county: d["County"] // Store the county name
+                    county: d["County"], // Store the county name
+
+                    // Store the 6 data columns, ensuring they are numeric
+                    foreignBornPct: trimmedValue && !isNaN(trimmedValue) ? +trimmedValue : 0,
+                    foreignBornEuropePct: +d["ForeignBornEuropePct"] || 0,
+                    foreignBornCentralSouthAmPct: +d["ForeignBornCentralSouthAmPct"] || 0,
+                    foreignBornAsiaPct: +d["ForeignBornAsiaPct"] || 0,
+                    foreignBornCaribPct: +d["ForeignBornCaribPct"] || 0
                 };
             }
             return map;
@@ -50,7 +61,14 @@ d3.csv(dataUrl1).then(data1 => {
                     state: data1Map[fips].state || data2Map[fips].state, // Get state from either dataset
                     county: data2Map[fips].county, // Get county name from the second dataset
                     column1: data1Map[fips].value, // Smoking percentage from the first dataset
-                    columnA: data2Map[fips].value  // Foreign-born percentage from the second dataset
+                    columnA: data2Map[fips].value, // Data to be displayed int he visualizations. Initailized to the default foreignBornPct
+
+                    // Include the six data point columns
+                    foreignBornPct: data2Map[fips].foreignBornPct,
+                    foreignBornEuropePct: data2Map[fips].foreignBornEuropePct,
+                    foreignBornCentralSouthAmPct: data2Map[fips].foreignBornCentralSouthAmPct,
+                    foreignBornAsiaPct: data2Map[fips].foreignBornAsiaPct,
+                    foreignBornCaribPct: data2Map[fips].foreignBornCaribPct
                 });
             }
         }
@@ -58,14 +76,14 @@ d3.csv(dataUrl1).then(data1 => {
         console.log("Combined Data:", combinedData); // Log the combined data for debugging
 
         // Filter out bad data (e.g., "Unknown" states or a specific county in Alaska)
-        const filteredData = combinedData.filter(d => 
+        filteredData = combinedData.filter(d =>
             d.state !== "Unknown" && !(d.state === "Alaska" && d.county === "Valdez-Cordova")
         );
 
         // Create all the visualizations (bar chart, scatterplot, choropleth maps)
-        createBarChart(filteredData);
-        createScatterplot(filteredData);
-        createChoroplethMaps(filteredData);
+        createBarChart(filteredData, "Foreign Born %", "Percentage of Foreign Born Residents", "#ff7f0e");
+        createScatterplot(filteredData, "Foreign Born %", "Percentage of Foreign Born Residents");
+        createChoroplethMaps(filteredData, "Foreign Born %", "Percentage of Foreign Born Residents");
 
     }).catch(error => console.error("Error loading second CSV:", error)); // Catch errors from loading the second CSV
 }).catch(error => console.error("Error loading first CSV:", error)); // Catch errors from loading the first CSV
@@ -79,7 +97,7 @@ d3.csv(dataUrl1).then(data1 => {
  */
 function getStateFromFIPS(fips) {
     if (!fips || fips.length < 2) return "Unknown"; // If FIPS code is invalid, return "Unknown"
-    
+
     // Map of state FIPS codes to state names
     const stateFIPSCodes = {
         "01": "Alabama", "02": "Alaska", "04": "Arizona", "05": "Arkansas", "06": "California",
@@ -102,8 +120,16 @@ function getStateFromFIPS(fips) {
  * Function to create the bar chart
  * 
  * @param combinedData - All the county data, including smoking and foreign-born percentages
+ * 
+ * @param tooltipTitle - The tooltip text to be displayed based on the dropdown selection
+ * 
+ * @param legendText - The legend text to be used for the % of foreign born residents. Dynamically
+ *                     updates based on the dropdown selection.
+ * 
+ * @param selectedColor - Color to be used along with the % of foreign born residents data. Dynamically
+ *                     updates based on the dropdown selection.
  */
-function createBarChart(combinedData) {
+function createBarChart(combinedData, tooltipTitle, legendText, selectedColor) {
     const width = 900; // Chart width
     const height = 450; // Chart height
     const margin = { top: 60, right: 150, bottom: 50, left: 60 }; // Margins for chart layout
@@ -120,7 +146,7 @@ function createBarChart(combinedData) {
         .style("position", "absolute")
         .style("top", "10px")
         .style("left", "10px")
-        .on("change", updateChart); // Update chart when selection changes
+        .on("change", () => updateChart(tooltipTitle, selectedColor)); // Update chart when selection changes
 
     // Populate state dropdown with unique states
     dropdown.selectAll("option")
@@ -137,7 +163,7 @@ function createBarChart(combinedData) {
         .style("position", "absolute")
         .style("top", "10px")
         .style("left", "150px")
-        .on("change", updateChart); // Update chart when sorting method changes
+        .on("change", () => updateChart(tooltipTitle, selectedColor)); // Update chart when sorting method changes
 
     // Sorting options to choose from
     const sortingOptions = [
@@ -189,12 +215,12 @@ function createBarChart(combinedData) {
     // ** Add Legend **
     const legend = svg.append("g")
         .attr("class", "legend")
-        .attr("transform", `translate(${width - 150}, -50)`); // Position legend
+        .attr("transform", `translate(${width - 300}, -50)`); // Position legend
 
     // Legend items with their respective colors and labels
     const legendData = [
         { color: "steelblue", label: "Percentage of Residents Who Smoke" },
-        { color: "orange", label: "Percentage of Foreign Born Residents" }
+        { color: selectedColor, label: legendText }
     ];
 
     // Append colored rectangles for the legend
@@ -219,14 +245,19 @@ function createBarChart(combinedData) {
 
     /**
      * Function to update the chart when a selection is made
+     * 
+     * @param tooltipTitle - The tooltip text to be displayed based on the dropdown selection
+     * 
+     * @param selectedColor - Color to be used along with the % of foreign born residents data. Dynamically
+ *                     updates based on the dropdown selection.
      */
-    function updateChart() {
+    function updateChart(tooltipTitle, selectedColor) {
         const selectedState = d3.select("#stateFilter").property("value"); // Get selected state
         const sortingMethod = d3.select("#sortingFilter").property("value"); // Get selected sorting method
-    
+
         // Filter data based on selected state
         let filteredData = combinedData.filter(d => d.state === selectedState);
-    
+
         // Apply sorting method
         switch (sortingMethod) {
             case "smokers_high_low":
@@ -244,18 +275,18 @@ function createBarChart(combinedData) {
             default: // Default to alphabetical order by county
                 filteredData.sort((a, b) => a.county.localeCompare(b.county));
         }
-    
+
         // Update scales based on filtered data
         xScale.domain(filteredData.map(d => d.fips));
         yScale.domain([0, d3.max(filteredData, d => Math.max(d.column1, d.columnA)) * 1.1]);
-    
+
         // Update axes with smooth transitions
         xAxis.transition().duration(500).call(d3.axisBottom(xScale).tickValues([]));
         yAxis.transition().duration(500).call(d3.axisLeft(yScale));
-    
+
         // Select tooltip element
         const tooltip = d3.select("#tooltip");
-    
+
         // Update bars (Smokers data)
         const bars1 = svg.selectAll(".bar1").data(filteredData, d => d.fips);
         bars1.enter().append("rect")
@@ -269,7 +300,7 @@ function createBarChart(combinedData) {
             .attr("height", d => height - yScale(d.column1))
             .attr("fill", "steelblue");
         bars1.exit().remove();
-    
+
         // Update bars (Foreign Born data)
         const bars2 = svg.selectAll(".bar2").data(filteredData, d => d.fips);
         bars2.enter().append("rect")
@@ -281,26 +312,26 @@ function createBarChart(combinedData) {
             .attr("y", d => yScale(d.columnA))
             .attr("width", xScale.bandwidth() / 2)
             .attr("height", d => height - yScale(d.columnA))
-            .attr("fill", "orange");
+            .attr("fill", selectedColor);
         bars2.exit().remove();
-    
+
         // Restore tooltip functionality
         svg.selectAll(".bar1, .bar2")
             .on("mouseover", function (event, d) {
                 // Reduce opacity for all bars
                 d3.selectAll(".bar1, .bar2").style("opacity", 0.5);
-            
+
                 // Highlight bars for the hovered county
                 d3.selectAll(`.bar1[data-fips='${d.fips}'], .bar2[data-fips='${d.fips}']`)
                     .style("opacity", 1)
                     .style("stroke", "black")
                     .style("stroke-width", "2px");
-            
+
                 // Show tooltip with county information
                 tooltip.style("visibility", "visible")
                     .html(`<strong>${d.county}, ${d.state}</strong><br>
                         Smokers: ${d.column1}%<br>
-                        Foreign Born: ${d.columnA}%`)
+                        ${tooltipTitle}: ${d.columnA}%`)
                     .style("left", (event.pageX + 10) + "px")
                     .style("top", (event.pageY - 20) + "px");
             })
@@ -312,22 +343,26 @@ function createBarChart(combinedData) {
             .on("mouseout", function () {
                 // Reset bar styles
                 d3.selectAll(`.bar1, .bar2`).style("opacity", 1).style("stroke", "none");
-    
+
                 // Hide tooltip
                 tooltip.style("visibility", "hidden");
             });
     }
 
     // Initialize chart with the first state in the dropdown
-    updateChart();
+    updateChart(tooltipTitle, selectedColor);
 }
 
 /** 
  * Function to create scatterplot with state filter
  * 
  * @param data - The dataset containing county information with columns for smoking and foreign-born percentages
+ * 
+ * @param tooltipTitle - The tooltip text to be displayed based on the dropdown selection
+ * 
+ * @param yAxisTitle - The y axis title to be used. Dynamically updates based on the dropdown selection.
  */
-function createScatterplot(data) {
+function createScatterplot(data, tooltipTitle, yAxisTitle) {
     const width = 900; // Width of the scatterplot
     const height = 450; // Height of the scatterplot
     const margin = { top: 60, right: 100, bottom: 50, left: 60 }; // Margins for chart layout
@@ -356,7 +391,7 @@ function createScatterplot(data) {
         .attr("id", "resetBrush")
         .text("Reset Brush")
         .on("click", resetBrush); // Reset the brush selection when clicked
-    
+
     // Create SVG container for the scatterplot
     const svg = d3.select("#scatterplot")
         .append("svg")
@@ -410,7 +445,7 @@ function createScatterplot(data) {
         .attr("text-anchor", "middle")
         .style("font-size", "15px")
         .style("fill", "#333")
-        .text("Percentage of Foreign Born Residents");
+        .text(yAxisTitle);
 
     // Define brushing behavior
     const brush = d3.brush()
@@ -420,7 +455,7 @@ function createScatterplot(data) {
             const [[x0, y0], [x1, y1]] = selection;
             circles.style("display", d =>
                 x0 <= xScale(d.column1) && xScale(d.column1) <= x1 &&
-                y0 <= yScale(d.columnA) && yScale(d.columnA) <= y1 ? "block" : "none"
+                    y0 <= yScale(d.columnA) && yScale(d.columnA) <= y1 ? "block" : "none"
             ); // Hide circles that are outside the brushed area
         });
 
@@ -507,17 +542,17 @@ function createScatterplot(data) {
 
     // Tooltip functionality for circle hover
     circles.on("mouseover", function (event, d) {
-            d3.select(this)
-                .attr("stroke", "black")
-                .attr("stroke-width", 2); // Add border to highlighted circle
+        d3.select(this)
+            .attr("stroke", "black")
+            .attr("stroke-width", 2); // Add border to highlighted circle
 
-            tooltip.style("visibility", "visible")
-                .html(`<strong>${d.county}, ${d.state}</strong><br>
+        tooltip.style("visibility", "visible")
+            .html(`<strong>${d.county}, ${d.state}</strong><br>
                     Smokers: ${d.column1}%<br>
-                    Foreign Born: ${d.columnA}%`) // Display county and data in tooltip
-                .style("left", (event.pageX + 10) + "px")
-                .style("top", (event.pageY - 20) + "px");
-        })
+                    ${tooltipTitle}: ${d.columnA}%`) // Display county and data in tooltip
+            .style("left", (event.pageX + 10) + "px")
+            .style("top", (event.pageY - 20) + "px");
+    })
         .on("mousemove", function (event) {
             tooltip.style("left", (event.pageX + 10) + "px")
                 .style("top", (event.pageY - 20) + "px"); // Move tooltip with the mouse
@@ -574,8 +609,15 @@ function createScatterplot(data) {
  * 
  * @param {Array} countyData - An array of objects containing county-level data for smoking rates 
  *                              and foreign-born population percentages.
+ * 
+ * @param tooltipTitle - The tooltip text to be displayed based on the dropdown selection
+ * 
+ * @param choroplethTitle - The title for the % Foreign Born map. Dynamically updates based on dropdown selection.
+ * 
+ * @param selectedCOlor - Color to be used along with the % of foreign born residents data. Dynamically
+ *                     updates based on the dropdown selection.
  */
-function createChoroplethMaps(countyData) {
+function createChoroplethMaps(countyData, tooltipTitle, choroplethTitle, selectedColor) {
     const width = 870, height = 470;
 
     // Define color scales for the two data variables (smoking and foreign-born percentages)
@@ -583,6 +625,12 @@ function createChoroplethMaps(countyData) {
         .domain([0, d3.max(countyData, d => d.column1)]); // Map column1 (smokers data) to a blue color scale
     const colorScaleForeignBorn = d3.scaleSequential(d3.interpolateOranges)
         .domain([0, d3.max(countyData, d => d.columnA)]); // Map columnA (foreign-born data) to an orange color scale
+
+    if (selectedColor === "#2ca02c") colorScaleForeignBorn.interpolator(d3.interpolateGreens); // Green
+    if (selectedColor === "#d62728") colorScaleForeignBorn.interpolator(d3.interpolateReds); // Red
+    if (selectedColor === "#bcbd22") colorScaleForeignBorn.interpolator(d3.interpolateYlGn); // Olive/Yellow-Green
+    if (selectedColor === "#ff7f0e") colorScaleForeignBorn.interpolator(d3.interpolateOranges); // Orange
+    if (selectedColor === "#9467bd") colorScaleForeignBorn.interpolator(d3.interpolatePurples); // Purple
 
     // Create a shared zoom behavior for both maps
     const zoom = d3.zoom()
@@ -602,9 +650,9 @@ function createChoroplethMaps(countyData) {
             const container = d3.select(`#${mapId}`); // Select the container for the current map
 
             // Add title for each map based on the data type
-            const titleText = index === 0 ? 
-                "Percentage of Residents Who Smoke" : 
-                "Percentage of Foreign Born Residents";
+            const titleText = index === 0 ?
+                "Percentage of Residents Who Smoke" :
+                choroplethTitle || "Percentage of Foreign Born Residents";
 
             container.append("h3")
                 .attr("class", "map-title")
@@ -633,8 +681,8 @@ function createChoroplethMaps(countyData) {
                 .attr("fill", d => {
                     const fips = d.id;
                     const county = countyData.find(c => c.fips === fips); // Find corresponding county data
-                    return county ? 
-                        (index === 0 ? colorScaleSmokers(county.column1) : colorScaleForeignBorn(county.columnA)) 
+                    return county ?
+                        (index === 0 ? colorScaleSmokers(county.column1) : colorScaleForeignBorn(county.columnA))
                         : "#ccc"; // Color counties based on data or set to grey if no data
                 })
                 .attr("stroke", "#fff") // White stroke color for county boundaries
@@ -648,7 +696,7 @@ function createChoroplethMaps(countyData) {
                             .style("visibility", "visible")
                             .html(`<strong>${county.county}, ${county.state}</strong><br>
                                    Smokers: ${county.column1}%<br>
-                                   Foreign Born: ${county.columnA}%`)
+                                   ${tooltipTitle}: ${county.columnA}%`)
                             .style("left", `${event.pageX + 10}px`)
                             .style("top", `${event.pageY - 20}px`);
 
@@ -676,8 +724,8 @@ function createChoroplethMaps(countyData) {
             // Create and add the legend for each map
             const legendWidth = 300, legendHeight = 10;
             const legendScale = d3.scaleLinear()
-                .domain(index === 0 ? [0, d3.max(countyData, d => d.column1)] : 
-                                      [0, d3.max(countyData, d => d.columnA)]) // Set domain for legend scale based on map index
+                .domain(index === 0 ? [0, d3.max(countyData, d => d.column1)] :
+                    [0, d3.max(countyData, d => d.columnA)]) // Set domain for legend scale based on map index
                 .range([0, legendWidth]); // Set range of the scale to the legend width
 
             const legendSvg = container.append("svg")
@@ -768,3 +816,112 @@ document.getElementById("toggleView").addEventListener("click", function () {
         }
     }
 })
+
+// Event listener to handle the dropdown menu for the data type and all other changes that
+// need to be made based off the selection.
+document.addEventListener("DOMContentLoaded", function () {
+    // Ensure the dropdown exists in the HTML
+    const dropdown = document.getElementById("data-selector");
+
+    if (!dropdown) {
+        console.error("Dropdown element not found in the HTML.");
+        return;
+    }
+
+    // Set dropdown to default option on page load
+    dropdown.value = "ForeignBornPct"; // Ensure this matches the default dataset
+
+    // Event listener for dropdown changes
+    dropdown.addEventListener("change", function (event) {
+        const selectedOption = event.target.value;
+        updateVisualizations(selectedOption);
+    });
+
+    /**
+     * Function to update all the visualizations based on the dropdown selection
+     * 
+     * @param selectedColumn - The selected column for the data type
+     */
+    function updateVisualizations(selectedColumn) {
+        if (!filteredData.length) {
+            console.error("filteredData is empty or not yet initialized.");
+            return;
+        }
+
+        // Convert selectedColumn to match lowercase data2Map keys
+        const formattedColumn = selectedColumn.charAt(0).toLowerCase() + selectedColumn.slice(1);
+
+        // Map column names to labels for the tooltip
+        const columnLabels = {
+            foreignBornPct: "Foreign Born %",
+            foreignBornEuropePct: "Foreign Born (Europe) %",
+            foreignBornCentralSouthAmPct: "Foreign Born (Central/South America) %",
+            foreignBornAsiaPct: "Foreign Born (Asia) %",
+            foreignBornCaribPct: "Foreign Born (Caribbean) %"
+        };
+
+        // Map column names to titles
+        const columnTitles = {
+            foreignBornPct: "Percentage of Foreign Born Residents",
+            foreignBornEuropePct: "Percentage of Foreign Born Residents from Europe",
+            foreignBornCentralSouthAmPct: "Percentage of Foreign Born Residents from Central/South America",
+            foreignBornAsiaPct: "Percentage of Foreign Born Residents from Asia",
+            foreignBornCaribPct: "Percentage of Foreign Born Residents from the Caribbean"
+        };
+
+        // Map column names to colors
+        const columnColors = {
+            foreignBornPct: "#ff7f0e",  // Orange
+            foreignBornEuropePct: "#2ca02c", // Green
+            foreignBornCentralSouthAmPct: "#d62728", // Red
+            foreignBornAsiaPct: "#bcbd22", // Olive/Yellow-Green
+            foreignBornCaribPct: "#9467bd"  // Purple
+        };
+
+        // Set the tooltip title dynamically
+        const tooltipTitle = columnLabels[formattedColumn] || "Foreign Born %";
+
+        // Set the choropleth map title dynamically
+        const foreignBornText = columnTitles[formattedColumn] || "Percentage of Foreign Born Residents";
+
+        // Set the color to be used for the data dynamically
+        const selectedColor = columnColors[formattedColumn] || "#ff7f0e"; // Default to Orange
+
+        // Ensure filteredData updates correctly
+        filteredData = filteredData.map(d => {
+            let fips = d.fips.trim(); // Ensure FIPS is a string and remove any hidden spaces
+            let dataEntry = data2Map[fips]; // Retrieve matching entry from data2Map
+
+            if (!dataEntry) {
+                console.warn(`No match found in data2Map for FIPS: ${fips}`);
+                return { ...d, columnA: 0 }; // Default to 0 if no match found
+            }
+
+            let newValue = dataEntry[formattedColumn]; // Retrieve selected column value
+            if (newValue === undefined) {
+                console.warn(`Column "${formattedColumn}" not found for FIPS: ${fips}`);
+            }
+
+            let convertedValue = newValue !== undefined && !isNaN(+newValue) ? +newValue : 0;
+
+            return {
+                ...d,
+                columnA: convertedValue, // Update columnA
+                tooltipLabel: tooltipTitle // Store tooltip label dynamically
+            };
+        });
+
+        // Remove old visualizations before creating new ones
+        d3.select("#chart").selectAll("*").remove();
+        d3.select("#scatterplot").selectAll("*").remove();
+        d3.select("#map1").selectAll("*").remove();
+        d3.select("#map2").selectAll("*").remove();
+
+        // Now recreate visualizations with updated data
+        createBarChart(filteredData, tooltipTitle, foreignBornText, selectedColor);
+        createScatterplot(filteredData, tooltipTitle, foreignBornText);
+        createChoroplethMaps(filteredData, tooltipTitle, foreignBornText, selectedColor);
+    }
+
+    console.log("Dropdown event listener added successfully.");
+});

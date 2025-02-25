@@ -122,3 +122,31 @@ header p {
   margin-left: 20px; /* Add left margin */
   font-size: 14px; /* Set the font size */
 }
+
+/* Dropdown container styling */
+#dropdown-container {
+  position: absolute; /* Allows precise positioning */
+  top: 220px; /* Adjust the vertical position */
+  left: 1500px; /* Adjust the horizontal position */
+  background-color: #f4f4f8; /* Background color */
+  padding: 10px; /* Add padding */
+  border: 1px solid #ccc; /* Add a light border */
+  border-radius: 5px; /* Round the corners */
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2); /* Add a slight shadow */
+}
+
+/* Style for the label */
+#dropdown-container label {
+  font-size: 16px; /* Font size for the dropdown label */
+  font-weight: bold; /* Make the label bold */
+  margin-right: 5px; /* Add some space between the label and selection */
+}
+
+/* Style for the dropdown select */
+#data-selector {
+  font-size: 14px; /* Font size for the selection for the dropdown */
+  padding: 5px; /* add padding around the dropdown select */
+  border: 1px solid #888; /* Add a small border to the select */
+  border-radius: 4px; /* Set the border size */
+  cursor: pointer;
+}
