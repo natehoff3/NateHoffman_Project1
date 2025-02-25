@@ -1,101 +1,124 @@
 /* Style for the page */
 body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #f4f4f9;
-  }
-  
-  header {
-    background-color: #4CAF50;
-    color: white;
-    text-align: center;
-    padding: 20px 0;
-  }
-  
-  header h1 {
-    font-size: 2.5em;
-  }
-  
-  header p {
-    font-size: 1.2em;
-  }
-  
-  .info {
-    text-align: center;
-    margin-top: 20px;
-  }
-  
-  #visualization-container {
-    display: flex;
-    justify-content: center;
-    margin-top: 30px;
-  }
-  
-  #chart {
-    width: 100%;
-    max-width: 1110px;
-    height: 570px;
-    background-color: #fff;
-    border: 1px solid #ddd;
-    padding: 10px;
-    border-radius: 5px;
-    overflow-x: auto;
-    margin-right: 30px;
-    margin-top: 10px;
+  font-family: Arial, sans-serif; /* Set the font family for the page */
+  margin: 0; /* Remove default margin */
+  padding: 0; /* Remove default padding */
+  background-color: #f4f4f9; /* Set a light gray background color for the page */
 }
 
+/* Header styling */
+header {
+  background-color: #4CAF50; /* Set header background color */
+  color: white; /* Set text color to white */
+  text-align: center; /* Center the text */
+  padding: 20px 0; /* Add padding to the top and bottom of the header */
+}
+
+header h1 {
+  font-size: 2.5em; /* Set the font size for the header title */
+}
+
+header p {
+  font-size: 1.2em; /* Set the font size for the paragraph text under the title */
+}
+
+/* Info section styling */
+.info {
+  text-align: center; /* Center the text */
+  margin-top: 20px; /* Add top margin */
+}
+
+/* Remove bullets (dots) from unordered list in the .info section */
+.info ul {
+  list-style: none;  /* Removes the default list bullets */
+  padding: 0;        /* Removes any padding */
+  margin: 0;         /* Removes any margin */
+}
+
+/* Container for the visualizations */
+#visualization-container {
+  display: flex; /* Use flexbox layout */
+  justify-content: center; /* Center the content horizontally */
+  margin-top: 30px; /* Add margin to the top */
+}
+
+/* Styling for the main chart */
+#chart {
+  width: 100%; /* Make the chart width responsive */
+  max-width: 1110px; /* Set the maximum width */
+  height: 570px; /* Set a fixed height */
+  background-color: #fff; /* Set a white background color */
+  border: 1px solid #ddd; /* Add a light border around the chart */
+  padding: 10px; /* Add padding inside the chart */
+  border-radius: 5px; /* Round the corners of the chart */
+  overflow-x: auto; /* Enable horizontal scrolling if content overflows */
+  margin-right: 30px; /* Add right margin */
+  margin-top: 10px; /* Add top margin */
+}
+
+/* Styling for the scatterplot */
 #scatterplot {
-    width: 100%;
-    max-width: 900px;
-    height: 570px;
-    background-color: #fff;
-    border: 1px solid #ddd;
-    padding: 10px;
-    border-radius: 5px;
-    margin-top: 10px;
+  width: 100%; /* Make the scatterplot width responsive */
+  max-width: 900px; /* Set the maximum width */
+  height: 570px; /* Set a fixed height */
+  background-color: #fff; /* Set a white background color */
+  border: 1px solid #ddd; /* Add a light border around the scatterplot */
+  padding: 10px; /* Add padding inside the scatterplot */
+  border-radius: 5px; /* Round the corners of the scatterplot */
+  margin-top: 10px; /* Add top margin */
 }
 
+/* View 1 (initial view) layout */
 #view1 {
-    display: flex;
-    flex-direction: row;
-    padding-left: 20px;
+  display: flex; /* Use flexbox layout */
+  flex-direction: row; /* Arrange child elements in a row */
+  padding-left: 20px; /* Add left padding */
 }
 
+/* View 2 (alternative view) layout */
 #view2 {
-  display: none;
-  justify-content: center;
-  align-items: center;
-  gap: 20px;
-  flex-wrap: wrap;
-  padding: 20px;
+  display: none; /* Initially hide this view */
+  justify-content: center; /* Center the content horizontally */
+  align-items: center; /* Center the content vertically */
+  gap: 20px; /* Add space between items */
+  flex-wrap: wrap; /* Allow items to wrap to the next line */
+  padding: 20px; /* Add padding around the content */
 }
 
+/* Container for the maps */
 .map-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 20px;
-  flex-wrap: nowrap;
-  width: 100%;
+  display: flex; /* Use flexbox layout */
+  justify-content: center; /* Center the maps horizontally */
+  align-items: center; /* Center the maps vertically */
+  gap: 20px; /* Add space between the maps */
+  flex-wrap: nowrap; /* Prevent wrapping of items */
+  width: 100%; /* Set the container width to 100% */
 }
 
+/* Individual map styling */
 .map {
-  width: 900px;
-  height: 600px;
-  background-color: #f0f0f0;
-  border: 1px solid #ddd;
-  border-radius: 5px;
+  width: 900px; /* Set the map width */
+  height: 600px; /* Set the map height */
+  background-color: #f0f0f0; /* Set a light gray background color */
+  border: 1px solid #ddd; /* Add a light border around the map */
+  border-radius: 5px; /* Round the corners of the map */
 }
 
+/* Button to toggle between views */
 #toggleView {
-    position: absolute;
-    top: 230px;
-    right: 1500px;
-    padding: 8px 12px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
+  position: absolute; /* Position the button absolutely */
+  top: 230px; /* Place the button 230px from the top */
+  right: 1500px; /* Place the button 1500px from the right */
+  padding: 8px 12px; /* Add padding inside the button */
+  background-color: #007bff; /* Set a blue background color */
+  color: white; /* Set the button text color to white */
+  border: none; /* Remove default border */
+  border-radius: 5px; /* Round the corners of the button */
+  cursor: pointer; /* Change cursor to pointer when hovering */
+}
+
+/* Reset brush button styling */
+#resetBrush {
+  margin-left: 20px; /* Add left margin */
+  font-size: 14px; /* Set the font size */
 }
